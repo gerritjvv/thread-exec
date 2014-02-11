@@ -1,10 +1,11 @@
 # thread-exec
 
-A Clojure library designed to ... well, that part is up to you.
+Underconstruction !!!
+
+Intelligent thread execution and pooling that automatically create different pools to isolate slow running tasks from faster running tasks and avoid the system slowing down
 
 ## Usage
 
-FIXME
 
 ## License
 
