@@ -46,7 +46,7 @@
 	    
         (= first-pool (submit pool-manager :abc #(Thread/sleep 100))) => true
         
-        (sort (get-layout pool-manager)) => [ [[0 100] [:abc]] [[100 556] []] ] 
+        (count (sort (get-layout pool-manager))) => 2
         
         ))))
 
