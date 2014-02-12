@@ -51,7 +51,15 @@
 
 (defn default-pool-manager [threshold max-groups start-group pool-size]
    (create-pool-manager threshold max-groups start-group #(create-exec-service pool-size)))
-  
+
+(defn get-layout [{:keys [pools timings groups threshold max-groups]}]
+  "Outputs {group [topic topic ...] }"
+  (let [layout (reduce #(assoc %1 %2 []) {} @groups)]
+    (reduce (fn [m k] 
+              (let [avg (-> timings deref (get k) :avg)
+                    [g _] (select-group avg @groups threshold max-groups)]
+                (merge-with conj m {g k}))) layout (keys @timings))))
+                       
 (defn get-pool [{:keys [max-groups threshold pools groups pool-create]} t]
   "Gets a pool if within the groups, otherwise a new pool is created and returned"
   (let [[g groups2] (select-group t @groups threshold max-groups)]
@@ -120,7 +128,7 @@
  (defn shutdown [{:keys [pools]} ^Long timeout]
    (doseq [[k ^ExecutorService exec] @pools]
      (.shutdown exec)
-     (if (not (.awaitTermination timeout (TimeUnit/MILLISECONDS)))
+     (if (not (.awaitTermination exec timeout (TimeUnit/MILLISECONDS)))
        (.shutdownNow exec))))
    
 

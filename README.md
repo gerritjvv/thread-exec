@@ -4,10 +4,11 @@
 Intelligent thread execution and pooling that automatically create different pools to isolate slow running tasks from faster running tasks and avoid the system slowing down
 
 ```[0.1.0-SNAPSHOT]```
+
 ## Usage
 
 ```
-(require [thread-exec.core :refer :all])
+(require '[thread-exec.core :refer :all])
 
 (def pool-manager (default-pool-manager 100 4 [0 100] 8))
 ;; parameters are [threshold max-groups start-group pool-size] 
@@ -18,6 +19,12 @@ Intelligent thread execution and pooling that automatically create different poo
 ;; threads become available.
 
 (submit pool-manager :abc #(Thread/sleep 500))
+
+(get-layout pool-manager)
+;; {[0 100] []}
+
+(shutdown pool-manager 1000)
+;; shutdown calls shutdown on each pool waiting a maximum of t milliseconds before calling shutdownNow
 
 
 ```

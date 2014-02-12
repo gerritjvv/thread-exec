@@ -44,6 +44,10 @@
        
 	      (dotimes [i 10] (submit pool-manager :abc #(Thread/sleep 40)))
 	    
-        (= first-pool (submit pool-manager :abc #(Thread/sleep 100))) => true))))
+        (= first-pool (submit pool-manager :abc #(Thread/sleep 100))) => true
+        
+        (sort (get-layout pool-manager)) => [ [[0 100] [:abc]] [[100 556] []] ] 
+        
+        ))))
 
     
