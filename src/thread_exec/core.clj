@@ -1,13 +1,15 @@
 (ns thread-exec.core
   (:require [clojure.tools.logging :refer [info error]])
   (:import 
-    [java.util.concurrent ThreadFactory BlockingQueue Callable ThreadPoolExecutor SynchronousQueue TimeUnit ExecutorService ThreadPoolExecutor$CallerRunsPolicy]))
+    [java.util.concurrent ThreadFactory BlockingQueue ArrayBlockingQueue Callable ThreadPoolExecutor SynchronousQueue TimeUnit ExecutorService ThreadPoolExecutor$CallerRunsPolicy]))
 
 
 
 (defn- create-exec-service [threads]
-   (doto (ThreadPoolExecutor. 0 threads 60 TimeUnit/SECONDS (SynchronousQueue.))
-     (.setRejectedExecutionHandler  (ThreadPoolExecutor$CallerRunsPolicy.))))
+  (let [queue (ArrayBlockingQueue. (int 100))
+			  exec  (doto (ThreadPoolExecutor. 0 threads 60 TimeUnit/SECONDS queue)
+					     (.setRejectedExecutionHandler  (ThreadPoolExecutor$CallerRunsPolicy.)))]
+    exec))
        
 
 (defn abs [n]
