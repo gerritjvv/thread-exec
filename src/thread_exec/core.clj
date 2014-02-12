@@ -1,4 +1,5 @@
 (ns thread-exec.core
+  (:require [clojure.tools.logging :refer [info error]])
   (:import 
     [java.util.concurrent ThreadFactory BlockingQueue Callable ThreadPoolExecutor SynchronousQueue TimeUnit ExecutorService ThreadPoolExecutor$CallerRunsPolicy]))
 
@@ -14,7 +15,7 @@
 
 (defn distance [t [a b]]
   "Returns the distance that t has from the centre of a to b, b must be bigger than a"
-  (abs (- (/ (abs (- b a)) 2) t)))
+   (if (and (> t a) (< t b)) 0 (abs (- b t))))
 
 
 (defn nearest [t p q]
@@ -22,7 +23,7 @@
    p and q are vectors of [low high] and t is an single vlaue"
   (let [a (distance t p)
         b (distance t q)]
-    (if (= a b) p q)))
+    (if (< a b) p q)))
 
 (defn nearest-group [t groups]
   (reduce (partial nearest t) groups))
@@ -44,12 +45,12 @@
       [v  groups])))             
  
 
-(defn pool-manager [threshold max-groups start-group pool-create]
+(defn create-pool-manager [threshold max-groups start-group pool-create]
  {:pool-create pool-create 
-  :max-groups max-groups :threshold threshold :pools (ref {}) :groups (ref [start-group])})
+  :max-groups max-groups :threshold threshold :pools (ref {}) :groups (ref [start-group]) :timings (ref {})})
 
 (defn default-pool-manager [threshold max-groups start-group pool-size]
-   (pool-manager threshold max-groups start-group #(create-exec-service pool-size)))
+   (create-pool-manager threshold max-groups start-group #(create-exec-service pool-size)))
   
 (defn get-pool [{:keys [max-groups threshold pools groups pool-create]} t]
   "Gets a pool if within the groups, otherwise a new pool is created and returned"
@@ -63,5 +64,66 @@
                                           (assoc m g (pool-create))
                                           m)))
              g)))))
+
+
+(defn average [t-seq]
+  "t-seq must be sorted, if count > 4 we drop the first and last items to iliminate peeks"
+  (let [s (if (> (count t-seq) 4) (-> t-seq rest drop-last) t-seq)]
+    (/ (reduce + s) (count s))))
+
+(defn update-timings! [{:keys [timings] :as p} topic t]
+  "Updates the timings reference with the new t and average, keeping the history for the time sequence at 10"
+   (dosync
+      (commute timings
+         (fn [timings]
+           (let [m (if-let [m (get timings topic)] m {:t-seq [] :avg 0})
+                 t-seq (conj (:t-seq m) t)
+                 m2 (-> m (assoc :t-seq (vec (take-last 10 t-seq)))
+                       (assoc :avg (average (sort t-seq))))]
+             (assoc timings topic m2))))))
+           
+  
+
+(defn ^Callable run-timed [pool-manager topic f]
+  "Returns a function that will run f and update its run timings against the pool-manager, on exception the error is printed out"
+  (fn []
+    (let [start (System/currentTimeMillis)]
+      (try 
+        (f)
+        (catch Exception e (error e e))
+        (finally 
+          (update-timings! pool-manager topic (- (System/currentTimeMillis) start)))))))
+
+
+  
+    
+(defn get-topic-average [{:keys [timings]} topic]
+  (if-let [m (get @timings topic)]
+    (if (> (count (:t-seq m)) 3) 
+      (:avg m)
+      0)
+    0))
+
+ (defn ^ExecutorService get-exec [pool-manager topic]
+   "Returns the thread pool as per the topic's average execution time"
+   (get-pool pool-manager (get-topic-average pool-manager topic)))
+ 
+ (defn submit [pool-manager topic f]
+   "Main entry point of this library, it runs the function f in a execution pool,
+    depending on the cumulative average execution time of the function.
+    The function returns the ExecutorService that was used."
+   (let [exec (get-exec pool-manager topic)]
+    (.submit exec (run-timed pool-manager topic f))
+    exec))
+
+ 
+ (defn shutdown [{:keys [pools]} ^Long timeout]
+   (doseq [[k ^ExecutorService exec] @pools]
+     (.shutdown exec)
+     (if (not (.awaitTermination timeout (TimeUnit/MILLISECONDS)))
+       (.shutdownNow exec))))
+   
+
+
 
 

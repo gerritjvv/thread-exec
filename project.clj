@@ -11,5 +11,6 @@
          [lein-kibit "0.0.8"] [no-man-is-an-island/lein-eclipse "2.0.0"]
            ]
   :dependencies [
+		[org.clojure/tools.logging "0.2.6"]
                 [midje "1.6-alpha2" :scope "test"]
 		[org.clojure/clojure "1.5.1"]])
