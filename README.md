@@ -3,11 +3,11 @@
 
 Intelligent thread execution and pooling that automatically create different pools to isolate slow running tasks from faster running tasks and avoid the system slowing down
 
-```[0.1.0-SNAPSHOT]```
+[0.1.0-SNAPSHOT]
 
 ## Usage
 
-```
+```clojure
 (require '[thread-exec.core :refer :all])
 
 (def pool-manager (default-pool-manager 100 4 [0 100] 8))
