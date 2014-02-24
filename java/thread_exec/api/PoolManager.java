@@ -30,15 +30,6 @@ public class PoolManager {
 			
 	}
 	
-	static Object[] v = {1, 2};
-	
-	public static void main(Object[] objects){
-		// 100 4 [0 100] 8)
-		Object pool = PoolManager.defaultPoolManager(100, 4, new int[]{0, 100}, 8);
-		PoolManager.submit(pool, "test", new Runnable(){public void run(){System.out.println("hi");}});
-		PoolManager.shutdown(pool, 1000L);
-	}
-	
 	public static final Object defaultPoolManager(int threshold, int maxGroups, int[] startGroup, int poolSize){
 		return RT.var("thread-exec.core", "default-pool-manager").invoke(threshold, maxGroups, 
 				RT.var("clojure.core", "vector").invoke(startGroup[0], startGroup[1]), poolSize);
