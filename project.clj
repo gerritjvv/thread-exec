@@ -6,6 +6,9 @@
 
   :global-vars {*warn-on-reflection* true
                 *assert* false}
+  :javac-options ["-target" "1.6" "-source" "1.6" "-Xlint:-options"]
+  :java-source-paths ["java"]
+  
   :plugins [
          [lein-midje "3.0.1"] [lein-marginalia "0.7.1"]
          [lein-kibit "0.0.8"] [no-man-is-an-island/lein-eclipse "2.0.0"]
