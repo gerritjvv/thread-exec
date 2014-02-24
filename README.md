@@ -50,7 +50,6 @@ PoolManager.shutdown(pool, 1000L);
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 gerritjvv@gmail.com
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Eclipse Public License version 1.0
