@@ -5,8 +5,8 @@
 
 
 
-(defn- create-exec-service [threads]
-  (let [queue (ArrayBlockingQueue. (int 100))
+(defn create-exec-service [threads & {:keys [queue-limit] :or {queue-limit 100}}]
+  (let [queue (ArrayBlockingQueue. (int queue-limit))
 			  exec  (doto (ThreadPoolExecutor. 0 threads 60 TimeUnit/SECONDS queue)
 					     (.setRejectedExecutionHandler  (ThreadPoolExecutor$CallerRunsPolicy.)))]
     (info "Creating thread pool max threads " threads)
