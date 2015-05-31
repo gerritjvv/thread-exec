@@ -1,9 +1,14 @@
 (ns thread-exec.core
-  (:require [clojure.tools.logging :refer [info error]])
-  (:import 
-    [java.util.concurrent ThreadFactory BlockingQueue ArrayBlockingQueue Callable ThreadPoolExecutor SynchronousQueue TimeUnit ExecutorService ThreadPoolExecutor$CallerRunsPolicy]))
+  (:require [clojure.tools.logging :refer [info error]]
+            [thread-load.api :as load-api])
+  (:import
+    [java.util.concurrent ThreadFactory BlockingQueue ArrayBlockingQueue Callable ThreadPoolExecutor SynchronousQueue TimeUnit ExecutorService ThreadPoolExecutor$CallerRunsPolicy]
+    (clojure.lang AFn)
+    (thread_load.api ILoadMonitorable)))
 
 
+;"Defines a Message with a Key associated with it"
+(defrecord KeyedMessage [k msg])
 
 (defn create-exec-service [threads & {:keys [queue-limit] :or {queue-limit 100}}]
   (let [queue (ArrayBlockingQueue. (int queue-limit))
@@ -138,7 +143,22 @@
      (if (not (.awaitTermination exec timeout (TimeUnit/MILLISECONDS)))
        (.shutdownNow exec))))
    
+(defn keyed-message
+  "Wraps the key and message in a KeyedMessage object to be used with the load-api/thread-load-factory returned instance"
+  [k msg] (->KeyedMessage k msg))
 
-
+(defmethod load-api/thread-load-factory :latency-grouped
+  [_ handlers {:keys [threshold max-groups start-group pool-size]
+               :or {100 3 [0 200] 8}}]
+  (let [pool-manager (default-pool-manager 100 4 [0 100] 8)
+        f (load-api/_compose-handlers handlers)]
+    (proxy
+      [AFn ILoadMonitorable] []
+      (invoke
+        ([] (shutdown pool-manager 10000) :true)
+        ([msg] (submit pool-manager :default #(f msg)) msg)
+        ([k msg & args] (submit pool-manager k #(f msg)) msg))
+      (size [] 1)
+      (stats [] {:pools @(:pools pool-manager)}))))
 
 

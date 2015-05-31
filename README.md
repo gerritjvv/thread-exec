@@ -14,6 +14,25 @@ For maven integration please read: https://clojars.org/thread-exec
 ```clojure
 (require '[thread-exec.core :refer :all])
 
+; Use the thread-load factory
+
+(require '[thread-load.api :as api])
+
+(def f (api/thread-load-factory :latency-grouped [(fn [_ msg] (prn "wow"))] {}))
+(f :a)
+;; sends with key :default
+(f :k1 :a)
+;; sends with key :k1
+
+(api/stats f)
+;; show pool stats
+;; {:pools {[0 100] #<ThreadPoolExecutor java.util.concurrent.ThreadPoolExecutor@77eac9a7[Running, pool size = 1, active threads = 0, queued tasks = 0, completed tasks = 1]>}}
+
+(f) 
+;;close
+
+; Direct creation method
+
 (def pool-manager (default-pool-manager 100 4 [0 100] 8))
 ;; parameters are [threshold max-groups start-group pool-size] 
 ;; new groups are created up to a maximum of max-groups if the average time a function takes
