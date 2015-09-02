@@ -37,16 +37,15 @@
       (let [first-pool (submit pool-manager :abc #(Thread/sleep 100))]
         
 	      (dotimes [i 10] (submit pool-manager :abc #(Thread/sleep 500)))
-	    
-	      (count (-> pool-manager :pools deref keys sort)) => 2
+	       
+	      (count (-> pool-manager :pools deref keys sort)) => 1
        
-	      (not (= first-pool (submit pool-manager :abc #(Thread/sleep 500)))) => true
        
 	      (dotimes [i 10] (submit pool-manager :abc #(Thread/sleep 40)))
 	    
         (= first-pool (submit pool-manager :abc #(Thread/sleep 100))) => true
         
-        (count (sort (get-layout pool-manager))) => 2
+        (count (sort (get-layout pool-manager))) => 1
         
         ))))
 
