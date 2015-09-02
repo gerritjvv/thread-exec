@@ -5,7 +5,9 @@ Intelligent thread execution and pooling that automatically create different poo
 
 The api is written in clojure but also has native java bindings.
 
-[thread-exec "0.2.0-SNAPSHOT"]
+[![Build Status](https://travis-ci.org/gerritjvv/thread-exec.svg)](https://travis-ci.org/gerritjvv/thread-exec)
+
+[![Clojars Project](http://clojars.org/thread-exec/latest-version.svg)](http://clojars.org/thread-exec)
 
 For maven integration please read: https://clojars.org/thread-exec
 
