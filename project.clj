@@ -16,5 +16,5 @@
   :dependencies [
 		[org.clojure/tools.logging "0.2.6"]
     		[midje "1.6-alpha2" :scope "test"]
-    		[thread-load "0.3.1"]
-		[org.clojure/clojure "1.5.1"]])
+    		[thread-load "0.3.2"]
+		[org.clojure/clojure "1.8.0"]])
