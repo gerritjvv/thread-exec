@@ -1,4 +1,4 @@
-(defproject thread-exec "0.3.0"
+(defproject thread-exec "0.3.1"
   :description "Intelligent thread execution and pooling that automatically create different pools to isolate slow running tasks from faster running tasks and avoid the system slowing down."
   :url "https://github.com/gerritjvv/thread-exec"
   :license {:name "Eclipse Public License"
